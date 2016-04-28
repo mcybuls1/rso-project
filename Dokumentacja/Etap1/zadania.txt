@@ -1,0 +1,15 @@
+Zadania do wykonania:
+    Aplikacja kliencka
+    Obsługa zapytań od klientów
+        -Równoważenie obciążenia (Load Balancing)
+        -Buforowanie i nadzór nad wykonaniem zapytań
+    Moduł obsługi zapytań do interfejsu programistycznego (API)
+    Moduł rozproszonej bazy danych klucz-wartość (DB)
+        -Obsługa interfejsu programistycznego bazy danych
+        -Nadzorca spójności danych
+    Moduł nadzorcy węzłów (MP)
+    Moduł interpretujący wspólny plik konfiguracyjny
+    Mechanizm uwierzytelniania węzłów w części serwerowej
+    Zestaw testów
+    Skrypt prezentujący działanie aplikacji
+    Konfiguracja narzędzi Docker i Docker Compose
