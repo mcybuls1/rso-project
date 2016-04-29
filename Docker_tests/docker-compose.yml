@@ -1,0 +1,38 @@
+version: '2'
+services:
+    nginx:
+        image: rsogrupag/nginx
+        links:
+            - node1:node1
+            - node2:node2
+            - node3:node3
+        ports:
+            - "5000:80"
+    node1:
+        image: rsogrupag/node
+        volumes:
+         - .:/code
+        ports:
+        - "5000"
+        depends_on:
+         - redis
+    node2:
+        image: rsogrupag/node
+        volumes:
+         - .:/code
+        ports:
+        - "5000"
+        depends_on:
+         - redis
+    node3:
+        image: rsogrupag/node
+        volumes:
+         - .:/code
+        ports:
+        - "5000"
+        depends_on:
+         - redis
+    redis:
+        image: redis
+        ports:
+        - "6379"
