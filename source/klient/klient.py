@@ -1,4 +1,4 @@
-import requests
+import requests, random
 
 class Klient(object):
     def __init__(self, plik_konfiguacyjny):
@@ -7,22 +7,31 @@ class Klient(object):
         self.timeout = None
         self.listaIP = None
 
-        self._wczytajlistaIP()
+        self._wczytajlisteIP()
+        self.aktualnyIP = self.listaIP[0]
 
-    def _wczytajlistaIP(self):
+
+    def _wczytajlisteIP(self):
         # parsowanie pliku
         self.listaIP = ['127.0.0.1:5000', '127.0.0.1:5001']
 
-    def zaloguj(self):
-        pass
+    def _wylosujIP(self):
+        kopiaListaIP = self.listaIP[:]
+        kopiaListaIP.remove(self.aktualnyIP)
+        self.aktualnyIP = random.choice(kopiaListaIP)
+
+
+    def zaloguj(self, login, haslo):
+        requests.post('zaloguj', data={'login': login, 'haslo': haslo})
+
 
     def wyslijPlik(self):
         pass
 
-    def pobierzSwojPlik(self, plik):
+    def pobierzSwojPlik(self, nazwa_plik):
         pass
 
-    def pobierzPlikZnajomego(self, znajomy, plik):
+    def pobierzPlikZnajomego(self, znajomy, nazwa_pliku):
         pass
 
     def listaMoichPlikow(self):
@@ -38,5 +47,3 @@ class Klient(object):
 
 if __name__ == '__main__':
     klient = Klient("sciezka_plik_konfiguracyjny")
-
-    klient

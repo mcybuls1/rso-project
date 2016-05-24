@@ -1,29 +1,53 @@
+from abc import abstractmethod, ABCMeta
+
 from flask import Flask
+from flask.blueprints import Blueprint
 from multiprocessing import Process
 
-class TestKlientSerwerWWW(object):
-    app = Flask("APP")
-    def __init__(self, text, port=5000):
-        # self.app = app = Flask(__name__)
+
+class TestSerwerBase(metaclass=ABCMeta):
+    def __init__(self, port):
+        self.app = None
         self.port = port
-        self.text = text
+        self.app = Flask(__name__)
+        # self.app.debug = True
+        self._make_and_register_blueprint()
 
-    def run(self):
-        self.app.run(host='0.0.0.0', debug=True, port=self.port)
 
-    @app.route('/')
-    def hello_word():
-        print("przetwarzam request'a")
-        return "hello word"
+    def _make_and_register_blueprint(self):
+        blueprint = Blueprint(__name__, __name__)
 
-# class TestKlientSerwerWWW2(TestKlientSerwerWWW):
+        @blueprint.route('/')
+        def hello():
+            return self._hello()
 
-if __name__=='__main__':
-    www = TestKlientSerwerWWW(text="jeden", port=5000)
-    www2 = TestKlientSerwerWWW(text="dwa", port=5001)
-    p1 = Process(target=www.run)
-    p2 = Process(target=www2.run)
-    p1.start()
-    p2.start()
-    p1.join()
-    p2.join()
+        self.app.register_blueprint(blueprint)
+
+    @abstractmethod
+    def _hello(self):
+        raise NotImplementedError
+
+    def startProcess(self):
+        self.process = Process(target=self.app.run, args=('0.0.0.0', self.port))
+        self.process.start()
+
+    def join(self):
+        self.process.join()
+
+
+class TestSerwerKlient1(TestSerwerBase):
+    def _hello(self):
+        return "111111"
+
+
+class TestSerwerKlient2(TestSerwerBase):
+    def _hello(self):
+        return "222222"
+
+
+if __name__ == '__main__':
+    www1 = TestSerwerKlient1(port=5051)
+    www1.startProcess()
+
+    www2 = TestSerwerKlient2(port=5071)
+    www2.startProcess()
