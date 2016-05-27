@@ -79,6 +79,9 @@ class KlientTestNormal(unittest.TestCase):
     def test_login_token(self):
         self.assertEqual('60febe74408dd25f11999b4a90548980', self.klient.token)
 
+    def test_login_id(self):
+        self.assertEqual(42, self.klient.id)
+
     def test_login_pass(self):
         'strzela do pierwszego serwera i odrazu podaje dobry login i haslo'
         k = Klient()
@@ -154,8 +157,9 @@ class KlientTestNormal(unittest.TestCase):
         def handler(request):
             self.temp = request.text
         k._wykonaj_zadanie(sciezka_postfix=sciezka_postfix,
-                           post_data=post_data,
-                           handler=handler)
+                           data=post_data,
+                           handler=handler,
+                           typ='POST')
         self.assertEqual('ala_ma_kota', self.temp)
 
     def test_wykonania_zadania_sukces2(self):
@@ -171,8 +175,9 @@ class KlientTestNormal(unittest.TestCase):
             self.temp = request.text
 
         k._wykonaj_zadanie(sciezka_postfix=sciezka_postfix,
-                           post_data=post_data,
-                           handler=handler)
+                           data=post_data,
+                           handler=handler,
+                           typ='POST')
         self.assertEqual('ala_ma_kota', self.temp)
 
     def test_wykonania_zadania_sukces3(self):
@@ -188,8 +193,9 @@ class KlientTestNormal(unittest.TestCase):
             self.temp = request.text
 
         k._wykonaj_zadanie(sciezka_postfix=sciezka_postfix,
-                           post_data=post_data,
-                           handler=handler)
+                           data=post_data,
+                           handler=handler,
+                           typ='POST')
         self.assertEqual('ala_ma_kota', self.temp)
 
     def test_wykonania_zadania_fail_timeout(self):
@@ -208,8 +214,9 @@ class KlientTestNormal(unittest.TestCase):
 
         self.assertRaises(Exception, k._wykonaj_zadanie,
                                      sciezka_postfix=sciezka_postfix,
-                                     post_data=post_data,
-                                     handler=handler)
+                                     data=post_data,
+                                     handler=handler,
+                                     typ='POST')
 
     def test_wykonania_zadania_fail_bad_token(self):
         '''strzela do 2 z blednym tokenem,
@@ -229,8 +236,9 @@ class KlientTestNormal(unittest.TestCase):
 
         self.assertRaises(Unauthorized, k._wykonaj_zadanie,
                           sciezka_postfix=sciezka_postfix,
-                          post_data=post_data,
-                          handler=handler)
+                          data=post_data,
+                          handler=handler,
+                          typ='POST')
 
 
     @patch('sys.stdout',new_callable=StringIO)

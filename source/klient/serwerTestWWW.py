@@ -3,7 +3,7 @@ from abc import abstractmethod, ABCMeta
 
 import flask
 import time
-from flask import Flask, request, abort
+from flask import Flask, request, abort, jsonify
 from flask.blueprints import Blueprint
 from multiprocessing import Process
 
@@ -40,13 +40,14 @@ class TestSerwerNormal():
     def _login(self, request):
         akceptowalny_login = 'login'
         akceptowalne_haslo = 'haslo'
-        if request.values['login'] == akceptowalny_login \
-            and request.values['haslo'] == akceptowalne_haslo:
-            login_plus_haslo = request.values['login'] + request.values['haslo']
+        if request.values['username'] == akceptowalny_login \
+            and request.values['password'] == akceptowalne_haslo:
+            login_plus_haslo = akceptowalny_login + akceptowalne_haslo
             czas = '2016-05-25-18-58-42'
             md5_hex = hashlib.md5( (login_plus_haslo+czas).encode() ).hexdigest()
             #dla login=login i haslo=haslo token=60febe74408dd25f11999b4a90548980
-            return md5_hex
+            return jsonify({'api_key': md5_hex, 'id': 42})
+            # return md5_hex
         else:
             abort(401)
 

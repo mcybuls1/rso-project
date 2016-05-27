@@ -8,6 +8,7 @@ class Klient(object):
         self.token = None
         self.timeout = 0.3
         self._listaIP = None
+        self.id = None
 
         self._wczytajlisteIP()
         self._wylosujIP_mieszajac_liste()
@@ -17,9 +18,9 @@ class Klient(object):
     def _wczytajlisteIP(self):
         self._listaIP = self._listaIPzPliku()
 
-    # def _listaIPzPliku(self):
-    #     #parser pliku
-        # pass
+    def _listaIPzPliku(self):
+        #parser pliku
+        pass
 
     # def _wylosujIP(self):
     #     'losuje ip eliminujac z losowania akutalne ip'
@@ -40,9 +41,10 @@ class Klient(object):
 
     def _zadanie_logowania(self, login, haslo):
         adres = 'http://' + self.aktualnyIP + '/login'
-        response = requests.post(adres, data={'login': login, 'haslo': haslo}, timeout=self.timeout)
+        response = requests.post(adres, data={'username': login, 'password': haslo}, timeout=self.timeout)
         if self._pozytywny_status(response.status_code):
-            self.token = response.text
+            self.token = response.json()['api_key']
+            self.id = int(response.json()['id'])
             return True, response.status_code
         else:
             self.token = None
@@ -118,7 +120,7 @@ class Klient(object):
                 l = input('login: ')
                 h = input('haslo: ')
 
-    def _wykonaj_zadanie(self, sciezka_postfix, post_data, handler):
+    def _wykonaj_zadanie(self, sciezka_postfix, handler, data=None, params=None, typ='POST'):
         # handler(*args_handler)
         # adres = 'http://' + adresIP + sciezka_postfix
         # sukces, response = self._post_wrapper(sciezka_postfix=sciezka_postfix,
@@ -128,8 +130,10 @@ class Klient(object):
             for ip in self._listaIP:
                 self.aktualnyIP = ip
                 try:
-                    sukces, response = self._post_wrapper(sciezka_postfix=sciezka_postfix,
-                                                  post_data=post_data)
+                    sukces, response = self._req_wrapper(sciezka_postfix=sciezka_postfix,
+                                                  data=data,
+                                                  params=params,
+                                                  typ=typ)
                     if sukces:
                         handler(response)
                         break
@@ -153,31 +157,36 @@ class Klient(object):
             raise e
 
 
-    def _post_wrapper(self, sciezka_postfix, post_data):
+    def _req_wrapper(self, sciezka_postfix, data=None, params=None, typ="POST"):
         """
         :rtype: bool, response
         """
         url = 'http://' + self.aktualnyIP + sciezka_postfix
-        response = requests.post(url, data=post_data, timeout=self.timeout)
+        if typ == 'DELETE':
+            response = requests.delete(url)
+        elif typ == 'GET':
+            response = requests.get(url, params=params, timeout=self.timeout)
+        else : #typ == 'POST'
+            response = requests.post(url, data=data, timeout=self.timeout)
         if self._pozytywny_status(response.status_code):
             return True, response
         else:
             return False, response
 
-    # def listaMoichPlikow(self):
-    #     # TODO przetestowac i serwer ogarnac
-    #     post_data = {'token': self.token}
-    #     sciezka_postfix = '/lista_moich_plikow'
-    #     try:
-    #         self._wykonaj_zadanie(sciezka_postfix=sciezka_postfix,
-    #                               post_data=post_data,
-    #                               handler=self._handler_listaMoichPlikow)
-    #     except Exception as e:
-    #         print('dostalem wyjątek na najwyzszym poziomie')
-    #
-    # def _handler_listaMoichPlikow(self, response):
-    #     # TODO
-    #     print(response.text)
+    def listaMoichPlikow(self):
+        # TODO przetestowac i serwer ogarnac
+        post_data = {'token': self.token}
+        sciezka_postfix = '/lista_moich_plikow'
+        try:
+            self._wykonaj_zadanie(sciezka_postfix=sciezka_postfix,
+                                  post_data=post_data,
+                                  handler=self._handler_listaMoichPlikow)
+        except Exception as e:
+            print('dostalem wyjątek na najwyzszym poziomie')
+
+    def _handler_listaMoichPlikow(self, response):
+        # TODO
+        print(response.text)
 
 
 
