@@ -1,15 +1,15 @@
 from flask import Flask
-from redis import Redis
 
 app = Flask(__name__)
 
-class Server(object):
-    def __init__(self, configuration):
-        self.configuration = configuration;
+class ServerManager(object):
+    def __init__(self, configuration, image_manager, user_manager):
+        self.configuration = configuration
+        self.user_manager = user_manager
+        self.image_manager = image_manager
 
-    @app.route('/')
-    def index(self):
-        return "Hello, World!"
-
-if __name__ == '__main__':
-    app.run(debug=True)
+    def get_user_manager(self):
+        return self.user_manager
+    
+    def get_image_manager(self):
+        return self.image_manager
