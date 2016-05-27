@@ -1,10 +1,12 @@
-from flask import Flask, abort
 import sys
+
+from flask import Flask, abort
 from flask.json import jsonify
 from flask.globals import request
+
 from server.server_manager import ServerManager
-from server.image_manager import ImageManager
-from server.user_manager import UserManager
+from server.image.image_manager import ImageManager
+from server.user.user_manager import UserManager
 
 app = Flask(__name__)
 server_manager = None
@@ -12,8 +14,8 @@ server_manager = None
 def main(argv=None):
     config = get_config(argv)
     init(config)
+    
     return start()
-
 
 def get_config(argv):
     if argv is None:
@@ -67,11 +69,14 @@ def logout():
 #######
 @app.route('/<int:user_id>/images/', methods=['GET'])
 def get_images(user_id):
-    return jsonify({'user_id': user_id})
+    images = server_manager.get_images(user_id)
+    
+    return jsonify(images)
 
 @app.route('/<int:user_id>/images/<int:image_id>', methods=['GET'])
 def get_image(user_id, image_id):
-    return jsonify({'user_id': user_id, 'image_id': image_id})
+    image = server_manager.get_image(user_id, image_id)
+    return jsonify(image)
 
 @app.route('/<int:user_id>/images/', methods=['POST'])
 def upload_image(user_id):
