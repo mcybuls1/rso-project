@@ -7,8 +7,6 @@ from flask import Flask, request, abort
 from flask.blueprints import Blueprint
 from multiprocessing import Process
 
-
-
 class TestSerwerNormal():
     def __init__(self, port):
         self.app = None
@@ -21,13 +19,17 @@ class TestSerwerNormal():
     def _make_and_register_blueprint(self):
         blueprint = Blueprint(__name__, __name__)
 
-        @blueprint.route('/hello')
+        @blueprint.route('/hello', methods=['POST', 'GET'])
         def hello():
             return self._hello()
 
         @blueprint.route('/login', methods=['POST'])
         def login():
             return self._login(request)
+
+        @blueprint.route('/test_zadanie', methods=['POST', 'GET'])
+        def test_zadanie():
+            return self._test_zadanie(request)
 
         self.app.register_blueprint(blueprint)
 
@@ -47,6 +49,10 @@ class TestSerwerNormal():
             return md5_hex
         else:
             abort(401)
+
+    def _test_zadanie(self, request):
+        return request.values['test_text']
+
     def startProcess(self):
         self.process = Process(target=self.app.run, args=('0.0.0.0', self.port))
         self.process.start()
@@ -62,11 +68,23 @@ class TestSerwerBadLogin(TestSerwerNormal):
     def _login(self, request):
         abort(401)
 
-class TestSerwerLongTimeLogin(TestSerwerNormal):
-    def _login(self, request):
-        time.sleep(2)
-        return "LongTimeLogin"
+    def _test_zadanie(self, request):
+        abort(401)
 
+class TestSerwerTimeout(TestSerwerNormal):
+    timeout = 0.6
+    def _login(self, request):
+        time.sleep(self.timeout)
+        return "Timeout_login"
+
+    def _test_zadanie(self, request):
+        time.sleep(self.timeout)
+        return "Timeout_test_zadanie"
+
+class TestSerwerError(TestSerwerNormal):
+    '''504 - Service Unavalible'''
+    def _test_zadanie(self, request):
+        abort(504)
 
 
 

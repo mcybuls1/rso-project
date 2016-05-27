@@ -6,7 +6,7 @@ class Klient(object):
     def __init__(self, plik_konfiguacyjny=None):
         self.plik_konf = plik_konfiguacyjny
         self.token = None
-        self.timeout = 1
+        self.timeout = 0.3
         self._listaIP = None
 
         self._wczytajlisteIP()
@@ -118,6 +118,69 @@ class Klient(object):
                 l = input('login: ')
                 h = input('haslo: ')
 
+    def _wykonaj_zadanie(self, sciezka_postfix, post_data, handler):
+        # handler(*args_handler)
+        # adres = 'http://' + adresIP + sciezka_postfix
+        # sukces, response = self._post_wrapper(sciezka_postfix=sciezka_postfix,
+        #                                       post_data=post_data)
+        sukces = False
+        try:
+            for ip in self._listaIP:
+                self.aktualnyIP = ip
+                try:
+                    sukces, response = self._post_wrapper(sciezka_postfix=sciezka_postfix,
+                                                  post_data=post_data)
+                    if sukces:
+                        handler(response)
+                        break
+                    else:
+                        abort(response.status_code)
+                except Unauthorized as e:
+                    print(e, ' żądanie zasobu, który wymaga uwierzytelnienia')
+                    raise e
+                except Exception as e:
+                    print('Ponawiam żądanie do innego serwera')
+                    continue
+            if sukces:
+                pass # wykonano poprawnie zadanie
+            else:
+                raise Exception('Nie ma żadnego działającego węzła')
+        except Unauthorized as e:
+            print('spróbuj się zalogować raz jeszcze')
+            raise e
+        except Exception as e:
+            print(e, ', żaden serwer nie potrafi obsłużyć żądania')
+            raise e
+
+
+    def _post_wrapper(self, sciezka_postfix, post_data):
+        """
+        :rtype: bool, response
+        """
+        url = 'http://' + self.aktualnyIP + sciezka_postfix
+        response = requests.post(url, data=post_data, timeout=self.timeout)
+        if self._pozytywny_status(response.status_code):
+            return True, response
+        else:
+            return False, response
+
+    # def listaMoichPlikow(self):
+    #     # TODO przetestowac i serwer ogarnac
+    #     post_data = {'token': self.token}
+    #     sciezka_postfix = '/lista_moich_plikow'
+    #     try:
+    #         self._wykonaj_zadanie(sciezka_postfix=sciezka_postfix,
+    #                               post_data=post_data,
+    #                               handler=self._handler_listaMoichPlikow)
+    #     except Exception as e:
+    #         print('dostalem wyjątek na najwyzszym poziomie')
+    #
+    # def _handler_listaMoichPlikow(self, response):
+    #     # TODO
+    #     print(response.text)
+
+
+
     # def wyslijPlik(self):
     #     pass
     #
@@ -127,8 +190,6 @@ class Klient(object):
     # def pobierzPlikZnajomego(self, znajomy, nazwa_pliku):
     #     pass
     #
-    # def listaMoichPlikow(self):
-    #     pass
     #
     # def listaZnajomych(self):
     #     pass

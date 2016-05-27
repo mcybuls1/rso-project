@@ -8,9 +8,11 @@ from io import StringIO
 
 from unittest.mock import MagicMock, patch
 
+from werkzeug.exceptions import Unauthorized
+
 sys.path.extend([os.path.dirname(__file__)])
 # print(os.path.dirname(__file__))
-from serwerTestWWW import TestSerwerNormal, TestSerwerBadLogin, TestSerwerLongTimeLogin
+from serwerTestWWW import TestSerwerNormal, TestSerwerBadLogin, TestSerwerTimeout, TestSerwerError
 
 try:
     from klient import Klient
@@ -30,9 +32,13 @@ class KlientTestNormal(unittest.TestCase):
         cls.wwwBadLogin = TestSerwerBadLogin(port=cls.portBadLogin)
         cls.wwwBadLogin.startProcess()
 
-        cls.portTimeoutLogin = 5042
-        cls.wwwTimeoutLogin = TestSerwerLongTimeLogin(port=cls.portTimeoutLogin)
-        cls.wwwTimeoutLogin.startProcess()
+        cls.portTimeout = 5042
+        cls.wwwTimeout = TestSerwerTimeout(port=cls.portTimeout)
+        cls.wwwTimeout.startProcess()
+
+        cls.portError = 5043
+        cls.wwwError = TestSerwerError(port=cls.portError)
+        cls.wwwError.startProcess()
 
         # poczekajmy az serwery sie odpala
         time.sleep(1)
@@ -62,7 +68,8 @@ class KlientTestNormal(unittest.TestCase):
     def tearDownClass(cls):
         cls.wwwNormal.terminate()
         cls.wwwBadLogin.terminate()
-        cls.wwwTimeoutLogin.terminate()
+        cls.wwwTimeout.terminate()
+        cls.wwwError.terminate()
         # cls.klient_patch.stop()
 
     @staticmethod
@@ -103,7 +110,7 @@ class KlientTestNormal(unittest.TestCase):
         '''strzela do jednego serwera, ktory robi timeout
         i nie ma juz zadnego innego'''
         k = Klient()
-        k._listaIP = self._lista_serwerow([self.portTimeoutLogin])
+        k._listaIP = self._lista_serwerow([self.portTimeout])
         k.zaloguj('jakikolwiek', 'jakikolwiek')
         self.assertEqual(None, k.token)
 
@@ -112,7 +119,7 @@ class KlientTestNormal(unittest.TestCase):
         '''strzela kolejno do 3 serwerow, ktore robia timeout
         i nie ma juz zadnego innego'''
         k = Klient()
-        k._listaIP = self._lista_serwerow([self.portTimeoutLogin]*3)
+        k._listaIP = self._lista_serwerow([self.portTimeout] * 3)
         k.zaloguj('jakikolwiek', 'jakikolwiek')
         self.assertEqual(None, k.token)
 
@@ -121,7 +128,7 @@ class KlientTestNormal(unittest.TestCase):
         '''strzela kolejno do 3 serwerow, 2 robia timeout
         a ostatni loguje dobrze'''
         k = Klient()
-        k._listaIP = self._lista_serwerow([self.portTimeoutLogin] * 2 + [self.portNormal])
+        k._listaIP = self._lista_serwerow([self.portTimeout] * 2 + [self.portNormal])
         k.zaloguj('login', 'haslo')
         self.assertEqual('60febe74408dd25f11999b4a90548980', k.token)
 
@@ -131,12 +138,99 @@ class KlientTestNormal(unittest.TestCase):
         '''strzela kolejno do 3 serwerow, 2 pierwsze robia timeout
         a ostatni 2 razy zle dane logowania i potem loguje dobrze'''
         k = Klient()
-        k._listaIP = self._lista_serwerow([self.portTimeoutLogin] * 2 + [self.portNormal])
+        k._listaIP = self._lista_serwerow([self.portTimeout] * 2 + [self.portNormal])
         mock_stdin.write('pierwszy_zly_login\npierwszy_zle_haslo\n')
         mock_stdin.write('login\nhaslo\n')
         mock_stdin.seek(0)
         k.zaloguj('zly_login', 'zle_haslo')
         self.assertEqual('60febe74408dd25f11999b4a90548980', k.token)
+
+    def test_wykonania_zadania_sukces(self):
+        k = Klient()
+        k._listaIP = self._lista_serwerow([self.portNormal])
+        k.zaloguj('login', 'haslo')
+        post_data = {'token': k.token, 'test_text': 'ala_ma_kota'}
+        sciezka_postfix = '/test_zadanie'
+        def handler(request):
+            self.temp = request.text
+        k._wykonaj_zadanie(sciezka_postfix=sciezka_postfix,
+                           post_data=post_data,
+                           handler=handler)
+        self.assertEqual('ala_ma_kota', self.temp)
+
+    def test_wykonania_zadania_sukces2(self):
+        '''strzela do 1 i timeout -> ponawia do nastepnego
+        i udaje mu sie'''
+        k = Klient()
+        k._listaIP = self._lista_serwerow([self.portTimeout, self.portNormal])
+        # k.zaloguj('login', 'haslo')
+        post_data = {'token': k.token, 'test_text': 'ala_ma_kota'}
+        sciezka_postfix = '/test_zadanie'
+
+        def handler(request):
+            self.temp = request.text
+
+        k._wykonaj_zadanie(sciezka_postfix=sciezka_postfix,
+                           post_data=post_data,
+                           handler=handler)
+        self.assertEqual('ala_ma_kota', self.temp)
+
+    def test_wykonania_zadania_sukces3(self):
+        '''strzela do 1 i timeout -> ponawia do nastepnego
+        i udaje mu sie'''
+        k = Klient()
+        k._listaIP = self._lista_serwerow([self.portError, self.portNormal])
+        # k.zaloguj('login', 'haslo')
+        post_data = {'token': k.token, 'test_text': 'ala_ma_kota'}
+        sciezka_postfix = '/test_zadanie'
+
+        def handler(request):
+            self.temp = request.text
+
+        k._wykonaj_zadanie(sciezka_postfix=sciezka_postfix,
+                           post_data=post_data,
+                           handler=handler)
+        self.assertEqual('ala_ma_kota', self.temp)
+
+    def test_wykonania_zadania_fail_timeout(self):
+        '''strzela do 2 z timeoutem'''
+        k = Klient()
+        k._listaIP = self._lista_serwerow([self.portTimeout]*2)
+        post_data = {'token': k.token, 'test_text': 'ala_ma_kota'}
+        sciezka_postfix = '/test_zadanie'
+
+        def handler(request):
+            self.temp = request.text
+
+        # k._wykonaj_zadanie(sciezka_postfix=sciezka_postfix,
+        #                    post_data=post_data,
+        #                    handler=handler)
+
+        self.assertRaises(Exception, k._wykonaj_zadanie,
+                                     sciezka_postfix=sciezka_postfix,
+                                     post_data=post_data,
+                                     handler=handler)
+
+    def test_wykonania_zadania_fail_bad_token(self):
+        '''strzela do 2 z blednym tokenem,
+        ale juz pierwszy mu mowi zeby sie zalogowal jeszcze raz
+        i konczy obsluge'''
+        k = Klient()
+        k._listaIP = self._lista_serwerow([self.portBadLogin]*2)
+        post_data = {'token': k.token, 'test_text': 'ala_ma_kota'}
+        sciezka_postfix = '/test_zadanie'
+
+        def handler(request):
+            self.temp = request.text
+
+        # k._wykonaj_zadanie(sciezka_postfix=sciezka_postfix,
+        #                    post_data=post_data,
+        #                    handler=handler)
+
+        self.assertRaises(Unauthorized, k._wykonaj_zadanie,
+                          sciezka_postfix=sciezka_postfix,
+                          post_data=post_data,
+                          handler=handler)
 
 
     @patch('sys.stdout',new_callable=StringIO)
@@ -162,7 +256,7 @@ class KlientTestNormal(unittest.TestCase):
         self.assertEqual(response.text, 'hello')
 
     def test_www3_response(self):
-        response = requests.get('http://localhost:' + str(self.portTimeoutLogin) + '/hello')
+        response = requests.get('http://localhost:' + str(self.portTimeout) + '/hello')
         self.assertEqual(response.text, 'hello')
 
     def test_mockup_listaIP(self):
