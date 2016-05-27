@@ -1,0 +1,37 @@
+version: '2'
+services:
+    api_server:
+        build: ./api_server
+        volumes:
+            - ./api_server:/code
+        networks:
+            - interna-layer
+
+    loadbalancer:
+        build: ./loadbalancer
+        volumes:
+            - ./loadbalancer:/code
+        depends_on:
+            - api_server
+        networks:
+            - front-layer
+            - interna-layer
+        links:
+            - api_server
+
+    client:
+        build: ./client
+        volumes:
+            - ./client:/code
+        networks:
+            - front-layer
+        depends_on:
+            - loadbalancer
+        links:
+            - loadbalancer
+
+networks:
+    front-layer:
+        driver: bridge
+    interna-layer:
+        driver: bridge
