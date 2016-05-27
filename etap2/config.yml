@@ -2,7 +2,7 @@
 # Plik konfiguracyjny
 
 loadbalancer_conf:
-	max_request_size: 1048576
+  max_request_size: 1048576
   max_http_header_size: 8192
   http_port: 80
   https_port: 443
