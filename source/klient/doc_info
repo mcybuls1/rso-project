@@ -28,7 +28,7 @@ klient wczytuje z pliku konfiguracyjnego liste adresow ip węzłów do komunikac
 
 
 2) każde inne zapytanie:
-    do zapytania dołączam pole 'token' uzykany z logowania.
+    do zapytań POST i DELETE dołączam pole 'token' uzykany z logowania.
 
     Jeśli token nieważny -> informacja o próbie dostępu do zasobu, wymagającego uwierzytelnienia,
         każe zalogować się jeszcze raz, ale sam tego nie robię
@@ -40,7 +40,13 @@ klient wczytuje z pliku konfiguracyjnego liste adresow ip węzłów do komunikac
     i tak samo jak przy logowaniu, świadomie nie obsługuję sytuacji gdy przejdę po całej liście węzłów,
     i potem ktoś w między czasie ożyje.
 
-3) testowanie:
+3)zapytania:
+    usuniecie obrazka:  ->   przetestowane
+        DELETE /<int:user_id>/images/<int:image_id>
+        data={'token' <str: token>, 'user_id': <int: user_id>, 'image_id': <int image_id>}
+
+
+4) testowanie:   ->    aktualnie pokrycie kodu klienta 100%
     odpalam jednocześnie kilka serwerów flask'a z różnymi zachowaniami :
         -działa normalnie prawidłowo
         -robi timeout na wszystko

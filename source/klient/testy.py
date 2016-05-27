@@ -240,6 +240,26 @@ class KlientTestNormal(unittest.TestCase):
                           handler=handler,
                           typ='POST')
 
+    def test_delete_method(self):
+        # data={'token': "fdasfdsa"}
+        data={'image_id': 69, 'token': '60febe74408dd25f11999b4a90548980', 'user_id': 42}
+        adres = 'http://localhost:' + str(self.portNormal) + '/32/images/23'
+        response = requests.delete(adres, data=data)
+        print(response)
+
+    def test_usun_obrazek_pass(self):
+        k = Klient()
+        k._listaIP = self._lista_serwerow([self.portNormal])
+        k.zaloguj('login', 'haslo')
+        sukces = k.usun_moj_obrazek(obrazek_id=69)
+        self.assertEqual(True, sukces)
+
+    def test_usun_obrazek_fail(self):
+        k = Klient()
+        k._listaIP = self._lista_serwerow([self.portError])
+        k.zaloguj('login', 'haslo')
+        sukces = k.usun_moj_obrazek(obrazek_id=69)
+        self.assertEqual(False, sukces)
 
     @patch('sys.stdout',new_callable=StringIO)
     def test_mock_stdout(self, mock_stdout):

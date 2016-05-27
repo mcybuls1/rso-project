@@ -31,6 +31,11 @@ class TestSerwerNormal():
         def test_zadanie():
             return self._test_zadanie(request)
 
+        @blueprint.route('/<user_id>/images/<image_id>', methods=['DELETE'])
+        def usun_obrazek(user_id, image_id):
+            # request.values['token']
+            return self._usun_obrazek(request)
+
         self.app.register_blueprint(blueprint)
 
     def _hello(self):
@@ -53,6 +58,9 @@ class TestSerwerNormal():
 
     def _test_zadanie(self, request):
         return request.values['test_text']
+
+    def _usun_obrazek(self, request):
+        return 'usunieto_obrazek'
 
     def startProcess(self):
         self.process = Process(target=self.app.run, args=('0.0.0.0', self.port))
@@ -85,6 +93,8 @@ class TestSerwerTimeout(TestSerwerNormal):
 class TestSerwerError(TestSerwerNormal):
     '''504 - Service Unavalible'''
     def _test_zadanie(self, request):
+        abort(504)
+    def _usun_obrazek(self, request):
         abort(504)
 
 

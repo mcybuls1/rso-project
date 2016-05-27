@@ -20,6 +20,7 @@ class Klient(object):
 
     def _listaIPzPliku(self):
         #parser pliku
+        # return ['127.0.0.1:5000' '127.0.0.1:5001']
         pass
 
     # def _wylosujIP(self):
@@ -163,7 +164,7 @@ class Klient(object):
         """
         url = 'http://' + self.aktualnyIP + sciezka_postfix
         if typ == 'DELETE':
-            response = requests.delete(url)
+            response = requests.delete(url, data=data)
         elif typ == 'GET':
             response = requests.get(url, params=params, timeout=self.timeout)
         else : #typ == 'POST'
@@ -173,20 +174,37 @@ class Klient(object):
         else:
             return False, response
 
-    def listaMoichPlikow(self):
-        # TODO przetestowac i serwer ogarnac
-        post_data = {'token': self.token}
-        sciezka_postfix = '/lista_moich_plikow'
+    def usun_moj_obrazek(self, obrazek_id: int) -> bool:
+        def handler(response):
+            print('usunieto obrazek', obrazek_id, 'response.status.code:',response.status_code)
+
+        data={'token': self.token, 'user_id': self.id, 'image_id': obrazek_id}
+        sciezka_postfix = '/' + str(self.id) + '/' + 'images' + '/' + str(obrazek_id)
         try:
             self._wykonaj_zadanie(sciezka_postfix=sciezka_postfix,
-                                  post_data=post_data,
-                                  handler=self._handler_listaMoichPlikow)
+                                  data=data,
+                                  handler=handler,
+                                  typ='DELETE')
         except Exception as e:
-            print('dostalem wyjątek na najwyzszym poziomie')
+            print(e)
+            return False
+        return True
 
-    def _handler_listaMoichPlikow(self, response):
-        # TODO
-        print(response.text)
+
+    # def listaMoichPlikow(self):
+    #     # TODO przetestowac i serwer ogarnac
+    #     post_data = {'token': self.token}
+    #     sciezka_postfix = '/lista_moich_plikow'
+    #     try:
+    #         self._wykonaj_zadanie(sciezka_postfix=sciezka_postfix,
+    #                               post_data=post_data,
+    #                               handler=self._handler_listaMoichPlikow)
+    #     except Exception as e:
+    #         print('dostalem wyjątek na najwyzszym poziomie')
+    #
+    # def _handler_listaMoichPlikow(self, response):
+    #     # TODO
+    #     print(response.text)
 
 
 
