@@ -1,0 +1,27 @@
+POST /login
+    Payload: {"username": <str:username>, "password": <str:password>}
+    Zwraca {"api_key": <str:api_key>} i ustawia ciasteczko api_key
+     
+POST /logout
+    Payload: Pusty 
+    Usuwa ciasteczko api_key
+
+GET /<int:user_id>/images/ 
+    Wszystkie obrazki danego usera
+    
+POST /<int:user_id>/images/ 
+    Payload: {"description": <str: opis>, "data": <str:zawartosc obrazka>}
+    Uploaduje obrazek dla danego usera
+     
+GET /<int:user_id>/images/<int:image_id>
+    Obrazek o danym ID w kontekście danego usera
+    
+DELETE /<int:user_id>/images/<int:image_id>
+    Usuwa obrazek o danym ID w kontekście danego usera
+    
+POST /<int:user_id>/images/<int:image_id>/share/<int:share_for_user_id>
+    Payload: Pusty
+    Udostepnia obrazek dla danego usera
+    
+DELETE /<int:user_id>/images/<int:image_id>/share/<int:share_for_user_id>
+    Usuwa udostepnianie obrazka dla danego usera

@@ -17,7 +17,7 @@ class ServerManager(object):
     def get_images(self, user_id):
         #TODO authorizations
         
-        return self.image_manager.get_images();
+        return self.image_manager.get_images(user_id);
     
     def get_image(self, user_id, image_id):
         #TODO authorizations
@@ -27,19 +27,19 @@ class ServerManager(object):
     def upload_image(self, user_id, image):
         #TODO authorizations
         
-        return self.upload_image(user_id, image);
+        return self.image_manager.upload_image(image);
     
     def delete_image(self, user_id, image_id):
         #TODO authorizations
         
-        return self.delete_image(user_id, image_id);
+        return self.image_manager.delete_image(image_id);
     
-    def share_image(self, user_id, image_id, share_for_user_id):
+    def share_image(self, user_id, image_id, shared_for_user_id):
         #TODO authorizations
         
-        return self.share_image(user_id, image_id, share_for_user_id);
+        return self.image_manager.share_image(image_id, shared_for_user_id);
     
-    def unshare_image(self, user_id, image_id, share_for_user_id):
+    def unshare_image(self, user_id, image_id, shared_for_user_id):
         #TODO authorizations
         
-        return self.unshare_image(user_id, image_id, share_for_user_id);
+        return self.image_manager.unshare_image(image_id, shared_for_user_id);
