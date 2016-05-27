@@ -1,0 +1,16 @@
+# RSO Grupa G
+# Plik konfiguracyjny
+
+loadbalancer_conf:
+	max_request_size: 1048576
+  max_http_header_size: 8192
+  http_port: 80
+  https_port: 443
+  link: loadbalancer
+  host_number: 5
+  limit_connections: 3
+
+api_server:
+  http_port: 5000
+  link: api_server
+  host_number: 5
