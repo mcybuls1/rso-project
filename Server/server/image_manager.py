@@ -1,4 +1,7 @@
 class ImageManager(object):
+    def __init__(self, config):
+        self.config = config
+        
     def get_images(self, user_id):
         return 0;
     
