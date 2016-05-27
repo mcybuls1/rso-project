@@ -14,3 +14,6 @@ api_server:
   http_port: 5000
   link: api_server
   host_number: 5
+
+distributed_db:
+  server_port: 8080
