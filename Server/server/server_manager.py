@@ -1,6 +1,3 @@
-from flask import Flask
-
-app = Flask(__name__)
 
 class ServerManager(object):
     def __init__(self, configuration, image_manager, user_manager):
@@ -9,10 +6,10 @@ class ServerManager(object):
         self.image_manager = image_manager
 
     def login(self, username, password):
-        return self.user_manager.login(username, password)
+        return self.auth_manager.authenticate(username, password)
     
     def logout(self, username):
-        return self.user_manager.logout(username);
+        return self.auth_manager.unauthenticate(username);
     
     def get_images(self, user_id):
         #TODO authorizations
@@ -43,3 +40,8 @@ class ServerManager(object):
         #TODO authorizations
         
         return self.image_manager.unshare_image(image_id, shared_for_user_id);
+    
+    def create_user(self, username, password):
+        #TODO authorizations
+        
+        return self.user_manager.create_user()

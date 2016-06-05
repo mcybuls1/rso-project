@@ -157,6 +157,20 @@ def unshare_image(user_id, image_id, shared_for_user_id):
         abort(404)
     except UserNotFoundError:
         abort(404)
+        
+@app.route('/user', methods=['POST'])
+def create_user():
+    try:
+        result = server_manager.create_user(request.json['username'], request.json['password']);
+    
+        if result:
+            return jsonify(success = 'true', user_id = result)
+        
+        return jsonify(success = 'false')
+    except ImageNotFoundError:
+        abort(404)
+    except UserNotFoundError:
+        abort(404)
 
 if __name__ == '__main__':
     sys.exit(main())
