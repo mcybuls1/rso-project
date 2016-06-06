@@ -1,15 +1,16 @@
 
 class ServerManager(object):
-    def __init__(self, configuration, image_manager, user_manager):
+    def __init__(self, configuration, image_manager, user_manager, auth_manager):
         self.configuration = configuration
-        self.user_manager = user_manager
         self.image_manager = image_manager
+        self.user_manager = user_manager
+        self.auth_manager = auth_manager
 
     def login(self, username, password):
-        return self.auth_manager.authenticate(username, password)
+        return self.auth_manager.login(username, password)
     
-    def logout(self, username):
-        return self.auth_manager.unauthenticate(username);
+    def logout(self, session_key):
+        return self.auth_manager.logout(session_key);
     
     def get_images(self, user_id):
         #TODO authorizations

@@ -1,5 +1,11 @@
 class User(object):
     
+    def __init__(self, user_id, username, password_hash, creation_at, session_key):
+        self._user_id = user_id
+        self._username = username
+        self._password_hash = password_hash
+        self._created_at = creation_at
+        self._session_key = session_key
 
     def set_user_id(self, user_id):
         self._user_id = user_id
