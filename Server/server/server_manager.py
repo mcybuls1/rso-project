@@ -12,33 +12,33 @@ class ServerManager(object):
     def logout(self, session_key):
         return self.auth_manager.logout(session_key);
     
-    def get_images(self, user_id):
-        #TODO authorizations
+    def get_images(self, user_id, api_key):
+        self.auth_manager.check_authenticated(user_id, api_key)
         
         return self.image_manager.get_images(user_id);
     
-    def get_image(self, user_id, image_id):
-        #TODO authorizations
+    def get_image(self, user_id, image_id, api_key):
+        self.auth_manager.check_authorized_get_image(user_id, image_id, api_key)
         
         return self.image_manager.get_image(image_id);
         
-    def upload_image(self, user_id, image):
-        #TODO authorizations
+    def upload_image(self, user_id, image, api_key):
+        self.auth_manager.check_authenticated(user_id, api_key)
         
         return self.image_manager.upload_image(image);
     
-    def delete_image(self, user_id, image_id):
-        #TODO authorizations
+    def delete_image(self, user_id, image_id, api_key):
+        self.auth_manager.check_is_owner(user_id, image_id, api_key)
         
         return self.image_manager.delete_image(image_id);
     
-    def share_image(self, user_id, image_id, shared_for_user_id):
-        #TODO authorizations
+    def share_image(self, user_id, image_id, shared_for_user_id, api_key):
+        self.auth_manager.check_is_owner(user_id, image_id, api_key)
         
         return self.image_manager.share_image(image_id, shared_for_user_id);
     
-    def unshare_image(self, user_id, image_id, shared_for_user_id):
-        #TODO authorizations
+    def unshare_image(self, user_id, image_id, shared_for_user_id, api_key):
+        self.auth_manager.check_is_owner(user_id, image_id, api_key)
         
         return self.image_manager.unshare_image(image_id, shared_for_user_id);
     
