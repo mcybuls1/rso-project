@@ -1,0 +1,56 @@
+założenia klienta:
+
+klient wczytuje z pliku konfiguracyjnego liste adresow ip węzłów do komunikacji
+
+1) logowanie:
+    POST /login
+        data: {"username": <str:username>, "password": <str:password>}
+
+    dostaje json -> {"api_key": <str:token>, "id": <int:id>}
+    # musze dostać swoje 'id' po zalogowaniu żeby móc potem do REST'a startować z czymkolwiek
+
+    działanie:
+        tasuje liste ip węzłów i do skutku po kolei strzela z logowaniem do kolejnych jeśli
+        nie są w stanie obsłużyć zapytania (np timeout, nieżyje, albo jakiś inny błąd).
+        Jeśli potrafi obsłużyć to oczekuję w odpowiedzi "api_key" z tokenem.
+        Jeśli podaję złe dane logowania pyta mnie do skutku aż podam w końcu dobre
+
+        gdy przejde wszystkie węzły -> informacja, że lipa, nikt nie żyje amen
+
+        świadomie nie obsługuję sytuacji gdy np:
+            - przechodze przez 3 wezly
+            - 1 i 2 nie żyją, pytam 3 czy zaloguje
+            - 3 mówi że nie da rady, ale 1 lub 2 ożywa w tym czasie
+            - nie sprawdzam już tego i kończę z komunikatem, że nikt nie dał rady.
+
+    testowanie:
+        przetestowane ze wszystkich stron -> pokrycie kodu klienta (logowania) 100%
+
+
+2) każde inne zapytanie:
+    do zapytań POST i DELETE dołączam pole 'token' uzykany z logowania.
+
+    Jeśli token nieważny -> informacja o próbie dostępu do zasobu, wymagającego uwierzytelnienia,
+        każe zalogować się jeszcze raz, ale sam tego nie robię
+
+    Każde zapytanie podobnie jak przy logowaniu:
+    strzelam po kolei do listy wszystkich węzłów z pliku konfiguracyjnego,
+    aż któryś będzie osiągalny i da radę je obsłużyć, ale jak przejdę po wszystkich i żaden nie żyje
+    -> komunikat że lipa, koniec
+    i tak samo jak przy logowaniu, świadomie nie obsługuję sytuacji gdy przejdę po całej liście węzłów,
+    i potem ktoś w między czasie ożyje.
+
+3)zapytania:
+    usuniecie obrazka:  ->   przetestowane
+        DELETE /<int:user_id>/images/<int:image_id>
+        data={'token' <str: token>, 'user_id': <int: user_id>, 'image_id': <int image_id>}
+
+
+4) testowanie:   ->    aktualnie pokrycie kodu klienta 100%
+    odpalam jednocześnie kilka serwerów flask'a z różnymi zachowaniami :
+        -działa normalnie prawidłowo
+        -robi timeout na wszystko
+        -mówi że zły token -> AuthenticateError(401)
+        -error inny -> 504 - Service Unavalible
+
+    testuję różne scenariusze jakie mogą się wydarzyć z perspektywy klienta
