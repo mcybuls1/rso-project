@@ -11,20 +11,38 @@ from server.user.user_not_found_error import UserNotFoundError
 class UserManager(object):
     def __init__(self, config):
         self.r = redis.StrictRedis(host=config.get_db_host(), port=config.get_db_port(), db=config.get_db_db())
-        self.r.set('next_user_id', 1000)
+
+        pipe = self.r.pipeline()
+        if not pipe.exists('next_user_id'):
+            pipe.set('next_user_id', 1000)
+            pipe.execute()
         
         self.create_user('user01', 'pass01')
         
     def create_user(self, username, password):
-        creation_time = time.ctime()
-        raw_password = username + password + creation_time 
-        hashed_password = hashlib.md5( (raw_password).encode() ).hexdigest()
             
         user_id = self.r.incr('next_user_id')
-        pipe = self.r.pipeline()
-        pipe.hmset('user:' + str(user_id), {'username': str(username), 'password': str(hashed_password), 'creation_time': str(creation_time)})
-        pipe.hset('users', username, user_id)
-        pipe.execute()
+        user_key = 'user:' + str(user_id)
+        
+        while 1:
+            try:        
+                pipe = self.r.pipeline()
+                pipe.watch(user_key)
+                if not pipe.exists(user_key):
+                    pipe.multi()
+                    
+                    creation_time = time.ctime()
+                    raw_password = username + password + creation_time 
+                    hashed_password = hashlib.md5( (raw_password).encode() ).hexdigest()
+                    
+                    pipe.hmset(user_key, {'username': str(username), 'password': str(hashed_password), 'creation_time': str(creation_time)})
+                    pipe.hset('users', username, user_id)
+                    pipe.execute()
+                else:
+                    pipe.unwatch()
+                    break
+            except redis.exceptions.WatchError:
+                pass
         
         return user_id
     
