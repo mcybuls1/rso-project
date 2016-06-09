@@ -5,45 +5,23 @@ database_mockup = Flask(__name__)
 users = {
          
           'John_hash': {
-                      'user_name': 'John',
-                      'user_password': 'pass1',
-                      'friends': [{ 
-                                   'user_hash': 'Ana_hash',
-                                   'user_name': 'Ana'
-                                }], 
-                      'images': [{
-                                  'photo_hash': 'hash1'
-                                  },
-                                 {
-                                  'photo_hash': 'hash2'
-                                  }]
+                      'name': 'John',
+                      'password': 'pass1',
+                      'friends': ['Ana'], 
+                      'images': ['hash1', 'hash2']
                       },
          
         'Eric_hash': {
-                      'user_name': 'Eric',
-                      'user_password': 'pass2',
-                      'friends': [{ 
-                                   'user_hash': 'Ana_hash',
-                                   'user_name': 'Ana'
-                                   },
-                                  {
-                                   'user_hash': 'John_hash',
-                                   'user_name': 'John'
-                                   }],
-                      'images': [{
-                                  'photo_hash': 'hash3'
-                                  }]
+                      'name': 'Eric',
+                      'password': 'pass2',
+                      'friends': ['Ana', 'John'],
+                      'images': ['hash3']
                       },
         
         'Ana_hash': {
-                     'user_name': 'Ana',
-                     'user_password': 'pass3',
-                     'images': [{
-                                 'photo_hash': 'hash4'
-                                 },
-                                {
-                                 'photo_hash': 'hash5'
-                                 }]
+                     'name': 'Ana',
+                     'password': 'pass3',
+                     'images': ['hash', 'hash5']
                      }
                          
 }
@@ -58,6 +36,8 @@ def get_users():
 
 @database_mockup.route('/rso/users/<string:user_hash>', methods=['GET'])
 def get_user(user_hash):
+    if not user_hash in users.keys() :
+        abort(404)
     user = users.get(user_hash)
     if len(user) == 0:
         abort(404)
