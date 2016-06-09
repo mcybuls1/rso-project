@@ -1,6 +1,6 @@
 import yaml
 
-class Parser (object):
+class ConfigurationParser (object):
     def __init__(self, path="../../config.yml"):
         with open(path, 'r') as stream:
             try:
@@ -46,4 +46,6 @@ class Parser (object):
     
     def get_db_db(self):
         return self.get_server_configuration()["db_db"]
+    
+    
     

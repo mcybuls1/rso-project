@@ -1,4 +1,4 @@
-from parser import Parser
+from configuration_parser import ConfigurationParser
 
 def test(parser):
     get_db_host_test(parser)
@@ -59,7 +59,7 @@ def get_servers_count_test(parser):
     return 0
 
 if __name__ == '__main__':
-    parser = Parser("test_config.yml")
+    parser = ConfigurationParser("test_config.yml")
     test(parser)
     
     print (parser.get_servers_param())
