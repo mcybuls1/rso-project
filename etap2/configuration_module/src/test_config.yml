@@ -58,3 +58,7 @@ data_base:
         address: '192.168.23.24'
         port: 5556
 
+membership_protocol:
+  heartbeat_interval: 200
+  is_alive_interval: 500
+

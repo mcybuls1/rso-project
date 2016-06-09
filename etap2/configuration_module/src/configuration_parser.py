@@ -17,6 +17,9 @@ class ConfigurationParser (object):
     def get_database_configuration (self):
         return self.configuration["data_base"]
     
+    def get_membership_protocol_configuration (self):
+        return self.configuration["membership_protocol"]
+    
     def get_loadbalancer_link_name(self):
         return self.get_loadbalancer_configuration()["link"]
     
