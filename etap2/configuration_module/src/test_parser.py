@@ -1,12 +1,13 @@
 from parser import Parser
 
-def test():
-    parser = Parser("test_config.yml")
+def test(parser):
     get_db_host_test(parser)
     get_db_port_test(parser)
     get_db_db_test(parser)
     get_loadbalancer_link_name_test(parser)
     get_loadbalancers_count_test(parser)
+    get_databases_count_test(parser)
+    get_servers_count_test(parser)
 
 def get_db_host_test(parser):
     if not '192.168.56.2' == parser.get_db_host() :
@@ -43,5 +44,24 @@ def get_loadbalancers_count_test(parser):
     print ("OK")
     return 0
 
+def get_databases_count_test(parser):
+    if not 2 == parser.get_databases_count() :
+        print ("Databases count should be returned correctly")
+        return -1
+    print ("OK")
+    return 0
+
+def get_servers_count_test(parser):
+    if not 4 == parser.get_servers_count() :
+        print ("Servers count should be returned correctly")
+        return -1
+    print ("OK")
+    return 0
+
 if __name__ == '__main__':
-    test()
+    parser = Parser("test_config.yml")
+    test(parser)
+    
+    print (parser.get_servers_param())
+    print (parser.get_databases_param())
+    print (parser.get_loadbalancers_param())
