@@ -8,12 +8,12 @@ class Parser (object):
             except yaml.YAMLError as exc:
                 print(exc)
                 
-    def getLoadbalancerConfiguration (self):
+    def get_load_balancer_configuration (self):
         return self.configuration["loadbalancer_conf"]
     
-    def getServerConfiguration (self):
+    def get_server_configuration (self):
         return self.configuration["api_server"]
     
-    def getDistributedDBConfiguration (self):
+    def get_distributed_db_configuration (self):
         return self.configuration["distributed_db"]
-                
+            
