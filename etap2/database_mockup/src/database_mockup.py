@@ -1,10 +1,10 @@
-from flask import Flask, jsonify, abort, make_response
+from flask import Flask, jsonify, abort, make_response, request
 
 database_mockup = Flask(__name__)
 
-users = [
-         { 'user_hash': 'John_hash',
-          'user_data': {
+users = {
+         
+          'John_hash': {
                       'user_name': 'John',
                       'user_password': 'pass1',
                       'friends': [{ 
@@ -17,9 +17,9 @@ users = [
                                  {
                                   'photo_hash': 'hash2'
                                   }]
-                      }},
-         { 'user_hash': 'Eric_hash',
-        'user_data': {
+                      },
+         
+        'Eric_hash': {
                       'user_name': 'Eric',
                       'user_password': 'pass2',
                       'friends': [{ 
@@ -33,9 +33,9 @@ users = [
                       'images': [{
                                   'photo_hash': 'hash3'
                                   }]
-                      }},
-          { 'user_hash' : 'Ana_hash',
-        'user_data': {
+                      },
+        
+        'Ana_hash': {
                      'user_name': 'Ana',
                      'user_password': 'pass3',
                      'images': [{
@@ -45,8 +45,8 @@ users = [
                                  'photo_hash': 'hash5'
                                  }]
                      }
-           }               
-]
+                         
+}
 
 @database_mockup.route('/')
 def index():
@@ -58,8 +58,7 @@ def get_users():
 
 @database_mockup.route('/rso/users/<string:user_hash>', methods=['GET'])
 def get_user(user_hash):
-    user = [user for user in users if user['user_hash'] == user_hash]
-    print (user)
+    user = users.get(user_hash)
     if len(user) == 0:
         abort(404)
     return jsonify(user)
@@ -67,6 +66,16 @@ def get_user(user_hash):
 @database_mockup.errorhandler(404)
 def not_found(error):
     return make_response(jsonify({'error': 'Not found'}), 404)
+
+@database_mockup.route('/rso/users/<string:user_hash>', methods=['POST'])
+def update_user(user_hash):
+    if not request.json:
+        abort(400)
+    user = users[user_hash]
+    if len(user) == 0:
+        abort(400)
+    users[user_hash] = request.json
+    return jsonify({'user': request.json}), 201
 
 if __name__ == '__main__':
     database_mockup.run(debug=True, host="0.0.0.0")
