@@ -1,0 +1,60 @@
+# Testowy plik konfiguracyjny
+# RSO Grupa G
+
+load_balancer:
+  max_request_size: 1048576
+  max_http_header_size: 8192
+  http_port: 80
+  https_port: 443
+  link: loadbalancer
+  host_number: 5
+  limit_connections: 3
+  nodes_info:
+    count: 3
+    nodes_param:
+      - loadbalancer_1:
+        address: '192.168.13.54'
+        port: 5431
+      - loadbalancer_2:
+        address: '192.168.12.54'
+        port: 5432
+      - loadbalancer_3:
+        address: '192.168.11.54'
+        port: 5433
+
+server:
+  http_port: 5000
+  link: server
+  host_number: 5
+  db_host: '192.168.56.2'
+  db_port: 6379
+  db_db: 0
+  nodes_info:
+    count: 4
+    nodes_param:
+      - server_1:
+        address: '192.168.9.15'
+        port: 3333
+      - server_2:
+        address: '192.168.9.16'
+        port: 3334
+      - server_3:
+        address: '192.168.9.17'
+        port: 3345
+      - server_4:
+        address: '192.168.9.18'
+        port: 3346
+
+data_base:
+  server_port: 8080
+  link: database
+  nodes_info:
+    count: 2
+    nodes_param:
+      - database_1:
+        address: '192.168.23.23'
+        port: 5555
+      - database_2:
+        address: '192.168.23.24'
+        port: 5556
+
