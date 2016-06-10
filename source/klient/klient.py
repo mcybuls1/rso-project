@@ -1,11 +1,18 @@
+import io
+
 import requests, random
 from flask import abort
+from requests.auth import HTTPBasicAuth
 from werkzeug.exceptions import Unauthorized
+from flask.helpers import send_file
 
 class Klient(object):
     def __init__(self, plik_konfiguacyjny=None):
         self.plik_konf = plik_konfiguacyjny
-        self.token = None
+        self.token = None #nieuzywane chyba juz, ale niech lezy do testow
+        self.login = None
+        self.haslo = None
+        self.auth = None
         self.timeout = 0.3
         self._listaIP = None
         self.id = None
@@ -41,11 +48,19 @@ class Klient(object):
             return False
 
     def _zadanie_logowania(self, login, haslo):
-        adres = 'http://' + self.aktualnyIP + '/login'
-        response = requests.post(adres, data={'username': login, 'password': haslo}, timeout=self.timeout)
+        adres = 'http://' + self.aktualnyIP + '/api/login'
+        self.auth = HTTPBasicAuth(username=login, password=haslo)
+        # response = requests.post(adres, data={'username': login, 'password': haslo}, timeout=self.timeout,
+        #                          auth=self.auth)
+        response = requests.get(adres, timeout=self.timeout, auth=self.auth)
+
         if self._pozytywny_status(response.status_code):
-            self.token = response.json()['api_key']
-            self.id = int(response.json()['id'])
+            print('ZALOGOWANO')
+            # self.token = response.json()['api_key']
+            self.login = login
+            self.haslo = haslo
+            self.auth = HTTPBasicAuth(username=login, password=haslo)
+            # self.id = int(response.json()['id'])
             return True, response.status_code
         else:
             self.token = None
@@ -82,7 +97,8 @@ class Klient(object):
             # gdy koniec listy wezlow
             if self.token == None:
                 # nie zalogowano
-                raise Exception('Nie ma żadnego działającego węzła')
+                # raise Exception('Nie ma żadnego działającego węzła')
+                pass
             else:
                 print('zalogowano')
                 # pass
@@ -164,11 +180,11 @@ class Klient(object):
         """
         url = 'http://' + self.aktualnyIP + sciezka_postfix
         if typ == 'DELETE':
-            response = requests.delete(url, data=data)
+            response = requests.delete(url, data=data, auth=self.auth)
         elif typ == 'GET':
-            response = requests.get(url, params=params, timeout=self.timeout)
+            response = requests.get(url, params=params, timeout=self.timeout, auth=self.auth)
         else : #typ == 'POST'
-            response = requests.post(url, data=data, timeout=self.timeout)
+            response = requests.post(url, data=data, timeout=self.timeout, auth=self.auth)
         if self._pozytywny_status(response.status_code):
             return True, response
         else:
@@ -190,43 +206,76 @@ class Klient(object):
             return False
         return True
 
-
-    # def listaMoichPlikow(self):
-    #     # TODO przetestowac i serwer ogarnac
-    #     post_data = {'token': self.token}
-    #     sciezka_postfix = '/lista_moich_plikow'
-    #     try:
-    #         self._wykonaj_zadanie(sciezka_postfix=sciezka_postfix,
-    #                               post_data=post_data,
-    #                               handler=self._handler_listaMoichPlikow)
-    #     except Exception as e:
-    #         print('dostalem wyjątek na najwyzszym poziomie')
-    #
-    # def _handler_listaMoichPlikow(self, response):
-    #     # TODO
-    #     print(response.text)
-
-
-
-    # def wyslijPlik(self):
-    #     pass
-    #
-    # def pobierzSwojPlik(self, nazwa_plik):
-    #     pass
-    #
-    # def pobierzPlikZnajomego(self, znajomy, nazwa_pliku):
-    #     pass
-    #
-    #
-    # def listaZnajomych(self):
-    #     pass
-    #
-    # def listaPlikowZnajomego(self, znajomy):
-    #     pass
-
     def hello(self):
         return "hello_from_klient"
 
+    def wyslij_plik(self, file_path):
+        def handler(response):
+            print(response)
+
+        self._wykonaj_zadanie('/api/add_photo', handler=handler)
 
 # if __name__ == '__main__':
 #     klient = Klient("sciezka_plik_konfiguracyjny")
+
+class Klient2(object):
+    def __init__(self):
+        self.auth = None
+        self.timeout = 0.3
+        self._listaIP = None
+
+        self._wczytajlisteIP()
+        self._wylosujIP_mieszajac_liste()
+        pass
+
+    def _wczytajlisteIP(self):
+        self._listaIP = self._listaIPzPliku()
+
+    def _wylosujIP_mieszajac_liste(self):
+        random.shuffle(self._listaIP)
+        self.aktualnyIP = self._listaIP[0]
+
+    def _listaIPzPliku(self):
+        # TODO PARSER PLIKU
+        pass
+
+    def zaloguj(self, login, haslo):
+        self.auth = HTTPBasicAuth(username=login, password=haslo)
+        r = requests.get(url=self._listaIP[0] + '/api/login', auth=self.auth)
+        if r.status_code == 200:
+            print('ZALOGOWANO')
+            return True
+        if r.status_code == 401:
+            print('BLEDNE DANE LOGOWANIA')
+            return False
+
+    def sledz_znajomego(self, znajomy):
+        data = {'friend': znajomy}
+        r = requests.post(url=self._listaIP[0] + '/api/follow_friend',
+                          data=data,
+                          auth=self.auth)
+        if r.status_code == 404:
+            print('NIE MA TAKIEGO UZYTKOWNIKA')
+            # TODO
+
+    def _daj_zdjecie(self, photo_hash, rozszerzenie='.jpg'):
+        data = {'photo_hash': photo_hash}
+        r = requests.post(url=self._listaIP[0] + '/api/get_photo', verify=False,
+                          data=data,
+                          auth=self.auth)
+        with open(data['photo_hash']+'POBRANE'+rozszerzenie, 'wb') as f:
+            f.write(r.content)
+        return "ZAPISANO ZDJECIE"
+
+    def wrzuc_zdjecie(self, file_path):
+        with open(file_path, 'rb') as f:
+            files = {'file': f}
+            # file_stream = io.BytesIO(f.read())
+            r = requests.post(url=self._listaIP[0]+'/api/add_photo', files=files,
+                              auth=self.auth)
+            return r.status_code
+
+
+
+
+

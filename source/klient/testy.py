@@ -181,7 +181,7 @@ class KlientTestNormal(unittest.TestCase):
         self.assertEqual('ala_ma_kota', self.temp)
 
     def test_wykonania_zadania_sukces3(self):
-        '''strzela do 1 i timeout -> ponawia do nastepnego
+        '''strzela do 1 i error -> ponawia do nastepnego
         i udaje mu sie'''
         k = Klient()
         k._listaIP = self._lista_serwerow([self.portError, self.portNormal])
